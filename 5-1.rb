@@ -1,3 +1,69 @@
+def get_and_format_first_and_last(line)
+  first_and_last = line.chomp.split(" -> ").map {|ns| ns.split(",").map(&:to_i)}
+
+  return first_and_last.first, first_and_last.last
+end
+
+def get_coords(first, last)
+  x1 = first.first
+  y1 = first.last
+  x2 = last.first
+  y2 = last.last
+
+  coords = [first]
+  if x1 == x2 # it's a vertical line
+    y_max = [y1, y2].max
+    y_min = [y1, y2].min
+    vert_delta = y_max - y_min - 1
+
+    if vert_delta > 0
+      vert_delta.times do |i|
+        coords << [x1, (y_min + i+1)]
+      end
+    end
+  elsif y1 == y2 # it's a horizontal line
+    x_max = [x1, x2].max
+    x_min = [x1, x2].min
+
+    horiz_delta = x_max - x_min - 1
+    if horiz_delta > 0
+      horiz_delta.times do |i|
+        coords << [(x_min + i+1), y1]
+      end
+    end
+  else
+    x_dir = get_direction_method(x1, x2)
+    y_dir = get_direction_method(y1, y2)
+
+    sorted = [x1, x2].minmax
+    delta = sorted.last - sorted.first - 1
+
+    if delta > 0
+      delta.times do |i|
+        coords << [x1.send(x_dir, i+1), y1.send(y_dir, i+1)]
+      end
+    end
+  end
+  coords << last
+
+  coords
+end
+
+def update_coords!(all, new)
+  new.each do |coord_arr|
+    x = coord_arr.first
+    y = coord_arr.last
+
+    if !all[x]
+      all[x] = {y => 1}
+    elsif !all[x][y]
+      all[x][y] = 1
+    else
+      all[x][y] += 1
+    end
+  end
+end
+
 def get_direction_method(one, two)
   if one < two
     :+
@@ -6,63 +72,14 @@ def get_direction_method(one, two)
   end
 end
 
-
 all_coords = {}
 
 File.foreach(ARGV[0]) do |line|
-  # find first and last points
-  first_and_last = line.chomp.split(" -> ")
-  first = first_and_last.first.split(",").map(&:to_i)
-  last = first_and_last.last.split(",").map(&:to_i)
+  first, last = get_and_format_first_and_last(line)
 
-  # find all points in line
-  coords = [first]
-  if first.first == last.first # it's a vertical line
-    x = first.first
-    y_max = [first.last, last.last].max
-    y_min = [first.last, last.last].min
-    vert_delta = y_max - y_min - 1
-    if vert_delta > 0
-      vert_delta.times do |i|
-        coords << [x, (y_min + i+1)]
-      end
-    end
-  elsif first.last == last.last # it's a horizontal line
-    y = first.last
-    x_max = [first.first, last.first].max
-    x_min = [first.first, last.first].min
+  coords = get_coords(first, last)
 
-    horiz_delta = x_max - x_min - 1
-    if horiz_delta > 0
-      horiz_delta.times do |i|
-        coords << [(x_min + i+1), y]
-      end
-    end
-  else
-    x_dir = get_direction_method(first.first, last.first)
-    y_dir = get_direction_method(first.last, last.last)
-
-    sorted = [first.first, last.first].minmax
-    delta = sorted.last - sorted.first - 1
-
-    if delta > 0
-      delta.times do |i|
-        coords << [first.first.send(x_dir, i+1), first.last.send(y_dir, i+1)]
-      end
-    end
-  end
-  coords << last
-
-  # add coordinates to storage
-  coords.each do |coord_arr|
-    if !all_coords[coord_arr.first]
-      all_coords[coord_arr.first] = {coord_arr.last => 1}
-    elsif !all_coords[coord_arr.first][coord_arr.last]
-      all_coords[coord_arr.first][coord_arr.last] = 1
-    else
-      all_coords[coord_arr.first][coord_arr.last] += 1
-    end
-  end
+  update_coords!(all_coords, coords)
 end
 
 
@@ -76,6 +93,7 @@ all_coords.each do |x, y_hash|
   end
 end
 
+# Test on sample data
 # 9.times do |x|
 #   9.times do |y|
 #     if all_coords[x][y]
