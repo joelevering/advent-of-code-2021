@@ -1,7 +1,13 @@
 result = 0
 
 File.foreach(ARGV[0]) do |line|
-  formatted = line.chomp.split(" | ").map(&:split)
+  formatted = line.chomp.split(" | ").map do |digits_string|
+    digits_string.split.map do |digit_string|
+      digit_string.split("").sort
+    end
+  end
+
+  # e.g. ["abc", "defg"]
   digits = formatted.first
   output = formatted.last
 
@@ -13,22 +19,20 @@ File.foreach(ARGV[0]) do |line|
   zero_or_six_or_nine = []
   two_or_three_or_five = []
 
-  digits.each do |digit_string|
-    chars = digit_string.split("")
-
-    case digit_string.length
+  digits.each do |chars|
+    case chars.length
     when 2
-      solution_key[1] = chars.sort
+      solution_key[1] = chars
     when 4
-      solution_key[4] = chars.sort
+      solution_key[4] = chars
     when 3
-      solution_key[7] = chars.sort
+      solution_key[7] = chars
     when 5
-      two_or_three_or_five << chars.sort
+      two_or_three_or_five << chars
     when 6
-      zero_or_six_or_nine << chars.sort
+      zero_or_six_or_nine << chars
     when 7
-      solution_key[8] = chars.sort
+      solution_key[8] = chars
     end
   end
 
@@ -70,8 +74,7 @@ File.foreach(ARGV[0]) do |line|
   end
 
   # solve output
-  digit_arr = output.map do |digit_string|
-    output_chars = digit_string.split("")
+  digit_arr = output.map do |output_chars|
     correct_digit = nil
     solution_key.each do |digit, chars|
       if output_chars.length == chars.length && (output_chars - chars).empty?
