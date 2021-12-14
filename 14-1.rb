@@ -10,6 +10,17 @@ File.open(ARGV[0], "r").each_with_index do |line, i|
   end
 end
 
+def take_steps(polymer, rules, steps)
+  next_polymer = polymer
+
+  steps.times do |i|
+    puts i
+    next_polymer = take_step(next_polymer, rules)
+  end
+
+  next_polymer
+end
+
 def take_step(polymer, rules)
   new_polymer = ""
   next_char = nil
@@ -27,22 +38,13 @@ def take_step(polymer, rules)
   new_polymer
 end
 
-step_1_polymer = take_step(polymer, rules)
-step_2_polymer = take_step(step_1_polymer, rules)
-step_3_polymer = take_step(step_2_polymer, rules)
-step_4_polymer = take_step(step_3_polymer, rules)
-step_5_polymer = take_step(step_4_polymer, rules)
-step_6_polymer = take_step(step_5_polymer, rules)
-step_7_polymer = take_step(step_6_polymer, rules)
-step_8_polymer = take_step(step_7_polymer, rules)
-step_9_polymer = take_step(step_8_polymer, rules)
-step_10_polymer = take_step(step_9_polymer, rules)
+final = take_steps(polymer, rules, 10)
 
 results = [
-  step_10_polymer.count("N"),
-  step_10_polymer.count("C"),
-  step_10_polymer.count("B"),
-  step_10_polymer.count("H")
+  final.count("N"),
+  final.count("C"),
+  final.count("B"),
+  final.count("H")
 ]
 
 result = results.max - results.min
